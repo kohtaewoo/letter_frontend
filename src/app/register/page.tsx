@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function Register() {
   const [formData, setFormData] = useState({ name: "", username: "", password: "" });
@@ -27,34 +28,35 @@ export default function Register() {
       return;
     }
 
-    setIsSubmitting(true); // ✅ 요청 시작
+    setIsSubmitting(true);
 
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, trimmedData);
       alert("회원가입 성공! 로그인해주세요.");
-      router.push("/login"); // ✅ 회원가입 후 로그인 페이지 이동
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || error.response?.data || "회원가입 실패!");
-      } else {
-        alert("알 수 없는 오류가 발생했습니다.");
-      }
+      router.push("/login");
+    } catch (error) {
+      alert("회원가입 실패! 다시 시도해주세요.");
     } finally {
-      setIsSubmitting(false); // ✅ 요청 끝 (성공/실패 모두 포함)
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h1 className="text-2xl font-bold mb-4 text-center text-pink-400">📝 회원가입</h1>
+    <div className="flex items-center justify-center min-h-screen bg-[#FFE5EG] p-6">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="bg-white/30 backdrop-blur-md p-8 rounded-2xl shadow-lg max-w-sm w-full text-center border border-white/20"
+      >
+        <h1 className="text-3xl font-bold mb-6 text-black">📝 회원가입</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             name="name"
             value={formData.name}
             onChange={handleChange}
             placeholder="이름"
-            className="border p-2 w-full rounded focus:ring-2 focus:ring-pink-400"
+            className="border-none bg-white/60 p-3 w-full rounded-xl focus:ring-2 focus:ring-pink-400 placeholder-gray-700"
             required
           />
           <input
@@ -62,7 +64,7 @@ export default function Register() {
             value={formData.username}
             onChange={handleChange}
             placeholder="아이디"
-            className="border p-2 w-full rounded focus:ring-2 focus:ring-pink-400"
+            className="border-none bg-white/60 p-3 w-full rounded-xl focus:ring-2 focus:ring-pink-400 placeholder-gray-700"
             required
           />
           <input
@@ -71,24 +73,28 @@ export default function Register() {
             value={formData.password}
             onChange={handleChange}
             placeholder="비밀번호"
-            className="border p-2 w-full rounded focus:ring-2 focus:ring-pink-400"
+            className="border-none bg-white/60 p-3 w-full rounded-xl focus:ring-2 focus:ring-pink-400 placeholder-gray-700"
             required
           />
           <button
             type="submit"
-            className="bg-pink-400 text-white p-2 w-full rounded hover:bg-pink-500 transition disabled:opacity-50"
-            disabled={isSubmitting} // ✅ 요청 중 버튼 비활성화
+            className="w-full py-3 text-lg font-semibold rounded-xl bg-pink-400 text-white shadow-md hover:bg-pink-500 transition disabled:opacity-50 flex items-center justify-center"
+            disabled={isSubmitting}
           >
-            {isSubmitting ? "가입 중..." : "회원가입"}
+            {isSubmitting ? (
+              <span className="animate-spin h-5 w-5 border-t-2 border-white border-solid rounded-full"></span>
+            ) : (
+              "회원가입"
+            )}
           </button>
         </form>
-        <p className="text-center mt-4">
+        <p className="text-center mt-6 text-black">
           이미 계정이 있으신가요?{" "}
           <span className="text-blue-500 cursor-pointer hover:underline" onClick={() => router.push("/login")}>
             로그인
           </span>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

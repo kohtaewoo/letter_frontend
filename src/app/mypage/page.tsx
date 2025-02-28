@@ -1,7 +1,8 @@
 "use client";
+import axios from "axios";  // Axios를 임포트
 import { useEffect, useState } from "react";
-import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function MyPage() {
   const [user, setUser] = useState<{ username: string; name: string; createdAt: string } | null>(null);
@@ -18,18 +19,12 @@ export default function MyPage() {
 
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }, // ✅ Authorization 헤더 추가
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          console.error("❌ 유저 정보 불러오기 실패:", error);
-          alert(error.response?.data?.message || error.response?.data || "유저 정보를 불러오는 데 실패했습니다.");
-        } else {
-          alert("알 수 없는 오류가 발생했습니다.");
-        }
-
-        localStorage.removeItem("token"); // ✅ 잘못된 토큰 제거
+      } catch (error) {
+        alert("유저 정보를 불러오는 데 실패했습니다.");
+        localStorage.removeItem("token");
         router.push("/login");
       }
     };
@@ -37,63 +32,68 @@ export default function MyPage() {
     fetchUser();
   }, [router]);
 
-  const handleLogout = async () => {
-    const token = localStorage.getItem("token");
+  const handleLogout = () => {
+    // 로컬 스토리지에서 토큰 삭제
+    localStorage.removeItem("token");
 
-    if (!token) {
-      router.push("/");
-      return;
-    }
-
-    localStorage.removeItem("token"); // ✅ 먼저 토큰 삭제 (네트워크 오류 대비)
-
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      alert("로그아웃 되었습니다!");
-      router.push("/");
-    } catch (error: unknown) {
-      console.error("❌ 로그아웃 실패:", error);
-      alert("로그아웃 중 오류가 발생했습니다.");
-    }
+    // 바로 홈 페이지로 리다이렉션
+    router.push("/"); 
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FADADD] p-6">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold mb-4 text-pink-400">👤 마이페이지</h1>
-        {user ? (
-          <>
-            <p className="text-lg font-semibold text-gray-800">{user.name}님, 환영합니다! 🎉</p>
-            <div className="mt-6 space-y-3">
-              <button
-                onClick={() => router.push("/send-letter")}
-                className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition"
-              >
-                ✉️ 편지 보내기
-              </button>
-              <button
-                onClick={() => router.push("/letters")}
-                className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
-              >
-                📩 편지 보관함
-              </button>
-              <button
-                onClick={handleLogout}
-                className="w-full bg-gray-400 text-white p-2 rounded hover:bg-gray-500 transition"
-              >
-                로그아웃
-              </button>
-            </div>
-          </>
-        ) : (
-          <p className="text-gray-500">유저 정보를 불러오는 중...</p>
-        )}
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFE5EG] p-10">
+      <motion.h1
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-5xl font-extrabold text-black drop-shadow-lg tracking-wide mb-8"
+      >
+        🌸 Welcome, {user?.name || "Guest"}!
+      </motion.h1>
+
+      {user ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full max-w-lg text-center"
+        >
+          <p className="text-lg text-black font-semibold mb-6">
+            ☀ 오늘도 당신의 하루가 <span className="font-bold">따뜻하고 행복</span>하길! 💖
+          </p>
+
+          <div className="flex flex-col space-y-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/send-letter")}
+              className="w-full py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-pink-400 to-red-500 text-white shadow-lg hover:shadow-xl transition"
+            >
+              ✉️ 편지 보내기
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/letters")}
+              className="w-full py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-green-400 to-teal-500 text-white shadow-lg hover:shadow-xl transition"
+            >
+              📩 편지 보관함
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleLogout}
+              className="w-full py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-gray-500 to-gray-700 text-white shadow-lg hover:shadow-xl transition"
+            >
+              🚪 로그아웃
+            </motion.button>
+          </div>
+        </motion.div>
+      ) : (
+        <p className="text-black text-lg font-semibold animate-pulse">
+          사용자 정보를 불러오는 중...
+        </p>
+      )}
     </div>
   );
 }

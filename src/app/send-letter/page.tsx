@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function SendLetter() {
   const [formData, setFormData] = useState({ title: "", recipientUsername: "", content: "" });
@@ -23,7 +24,7 @@ export default function SendLetter() {
         });
         setUser(response.data);
       } catch (error) {
-        alert("유저 정보를 불러오는데 실패했습니다.");
+        alert("유저 정보를 불러오는 데 실패했습니다.");
         localStorage.removeItem("token");
         router.push("/login");
       }
@@ -39,7 +40,6 @@ export default function SendLetter() {
     e.preventDefault();
     if (!user) return;
 
-    // ✅ 입력값 검증 (공백 제거 및 검증)
     const trimmedData = {
       title: formData.title.trim(),
       recipientUsername: formData.recipientUsername.trim(),
@@ -58,7 +58,7 @@ export default function SendLetter() {
       return;
     }
 
-    setIsSubmitting(true); // ✅ 요청 시작
+    setIsSubmitting(true);
 
     try {
       await axios.post(
@@ -68,55 +68,70 @@ export default function SendLetter() {
       );
       alert("편지를 성공적으로 보냈습니다!");
       router.push("/mypage");
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || error.response?.data || "편지 보내기 실패!");
-      } else {
-        alert("알 수 없는 오류가 발생했습니다.");
-      }
+    } catch (error) {
+      alert("편지 보내기 실패! 다시 시도해주세요.");
     } finally {
-      setIsSubmitting(false); // ✅ 요청 종료 (성공/실패 무관)
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FADADD] p-6">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-4 text-pink-400">📩 편지 보내기</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="제목"
-            className="border p-2 w-full rounded focus:ring-2 focus:ring-pink-400"
-            required
-          />
-          <input
-            name="recipientUsername"
-            value={formData.recipientUsername}
-            onChange={handleChange}
-            placeholder="받는 사람 아이디"
-            className="border p-2 w-full rounded focus:ring-2 focus:ring-pink-400"
-            required
-          />
-          <textarea
-            name="content"
-            value={formData.content}
-            onChange={handleChange}
-            placeholder="내용을 입력하세요..."
-            className="border p-2 w-full h-32 rounded focus:ring-2 focus:ring-pink-400"
-            required
-          />
+    <div className="flex items-center justify-center min-h-screen bg-[#FFE5EG] p-8">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="bg-white p-10 rounded-xl shadow-2xl max-w-lg w-full text-center"
+      >
+        <h1 className="text-4xl font-bold text-pink-500 mb-6">📩 편지 보내기</h1>
+        <p className="text-gray-600 mb-6">사랑과 감동을 담아 소중한 사람에게 편지를 보내보세요.</p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="text-left">
+            <label className="block text-gray-700 font-medium mb-1">제목</label>
+            <input
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="편지 제목을 입력하세요"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 text-gray-700"
+              required
+            />
+          </div>
+          <div className="text-left">
+            <label className="block text-gray-700 font-medium mb-1">받는 사람</label>
+            <input
+              name="recipientUsername"
+              value={formData.recipientUsername}
+              onChange={handleChange}
+              placeholder="받는 사람의 아이디를 입력하세요"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 text-gray-700"
+              required
+            />
+          </div>
+          <div className="text-left">
+            <label className="block text-gray-700 font-medium mb-1">편지 내용</label>
+            <textarea
+              name="content"
+              value={formData.content}
+              onChange={handleChange}
+              placeholder="편지 내용을 입력하세요..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-400 text-gray-700 h-48 resize-none"
+              required
+            />
+          </div>
           <button
             type="submit"
-            className="bg-pink-400 text-white p-2 w-full rounded hover:bg-pink-500 transition disabled:opacity-50"
-            disabled={isSubmitting} // ✅ 요청 중 버튼 비활성화
+            className="w-full py-3 text-lg font-semibold rounded-lg bg-pink-400 text-white shadow-md hover:bg-pink-500 transition disabled:opacity-50"
+            disabled={isSubmitting}
           >
-            {isSubmitting ? "보내는 중..." : "✉️ 보내기"}
+            {isSubmitting ? (
+              <span className="animate-spin h-6 w-6 border-t-2 border-white border-solid rounded-full"></span>
+            ) : (
+              "✉️ 보내기"
+            )}
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
